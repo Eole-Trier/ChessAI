@@ -1,0 +1,3 @@
+[submodule "ChessAI/externals/Mountain"]
+	path = ChessAI/externals/Mountain
+	url = https://github.com/BloodLantern/Mountain.git
