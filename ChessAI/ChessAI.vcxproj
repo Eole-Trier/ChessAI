@@ -57,7 +57,6 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)\externals\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -78,15 +77,15 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)\externals\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ChessAI.cpp" />
-    <ClCompile Include="source\Application.cpp"/>
-    <ClCompile Include="source\ChessBoard.cpp"/>
-    <ClCompile Include="source\Piece.cpp"/>
-    <ClCompile Include="source\Tile.cpp"/>
+    <ClCompile Include="source\Application.cpp" />
+    <ClCompile Include="source\ChessBoard.cpp" />
+    <ClCompile Include="source\Piece.cpp" />
+    <ClCompile Include="source\Tile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="externals\Mountain\Mountain\Mountain.vcxproj">
