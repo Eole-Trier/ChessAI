@@ -1,6 +1,7 @@
 ﻿#include "ChessBoard.h"
 
 #include "Mountain/window.hpp"
+#include "Mountain/input/input.hpp"
 #include "Mountain/rendering/draw.hpp"
 #include "Mountain/resource/resource_manager.hpp"
 
@@ -9,6 +10,7 @@ ChessBoard::ChessBoard()
     boardSize = 0;
     position = {0, 0};
     scaling = {1, 1};
+    draggedPiece = nullptr;
 }
 
 ChessBoard::~ChessBoard()
@@ -91,6 +93,41 @@ void ChessBoard::InitPieces()
     pieces.Add(wKing);
     pieces.Add(bQueen);
     pieces.Add(bKing);
+}
+
+void ChessBoard::Update()
+{
+    Vector2 mousePos = Mountain::Input::GetMousePosition();
+
+    if (Mountain::Input::GetMouseButton(Mountain::MouseButton::Left, Mountain::MouseButtonStatus::Pressed))
+    {
+        const Vector2i mousePosToTiles = ToTiles(mousePos);
+        if (mousePosToTiles != Vector2i(-1, -1))
+        {
+            draggedPiece = GetPieceFromTile(tiles[mousePosToTiles.x][mousePosToTiles.y]);
+        }
+    }
+
+    if (Mountain::Input::GetMouseButton(Mountain::MouseButton::Left, Mountain::MouseButtonStatus::Down))
+    {
+        if (draggedPiece)
+            draggedPiece->globalPosition = mousePos;
+    }
+
+    if (Mountain::Input::GetMouseButton(Mountain::MouseButton::Left, Mountain::MouseButtonStatus::Release))
+    {
+        if (draggedPiece)
+        {
+            const Vector2i mousePosToTiles = ToTiles(mousePos);
+            draggedPiece->globalPosition = tiles[mousePosToTiles.x][mousePosToTiles.y].position;
+            draggedPiece = nullptr;
+        }
+    }
+}
+
+Piece* ChessBoard::GetPieceFromTile(const Tile& tile)
+{
+    return *pieces.Find([&](Piece* const * piece) { return (*piece)->globalPosition == tile.position; });
 }
 
 Vector2 ChessBoard::ToPixels(const Vector2i tilePosition)

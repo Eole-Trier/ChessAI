@@ -20,8 +20,10 @@ class Piece
 public:
     bool isWhite;
     PieceType pieceType = PieceType::Pawn;
-    Vector2i position;
+    Vector2 globalPosition;
     Vector2 scaling;
+
+    bool isDragged = false;
 
 public:
     Piece(bool isWhite, PieceType pieceType, Vector2i position);

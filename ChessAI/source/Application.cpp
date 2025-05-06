@@ -33,6 +33,7 @@ void Application::Shutdown()
 
 void Application::Update()
 {
+    chessBoard->Update();
 }
 
 void Application::Render()

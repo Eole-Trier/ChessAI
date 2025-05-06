@@ -11,6 +11,7 @@ public:
     Vector2 scaling;
     Mountain::List<Piece*> pieces;
     static inline std::array<std::array<Tile, 8>, 8> tiles;
+    Piece* draggedPiece;
 
 public:
     ChessBoard();
@@ -21,6 +22,8 @@ public:
     void Initialize();
     void InitTiles() const;
     void InitPieces();
+    void Update();
+    Piece* GetPieceFromTile(const Tile& tile);
 
 public:
     static void LoadResources();

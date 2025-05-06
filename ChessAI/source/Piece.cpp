@@ -2,11 +2,12 @@
 
 #include "ChessBoard.h"
 #include "Mountain/window.hpp"
+#include "Mountain/input/input.hpp"
 #include "Mountain/rendering/draw.hpp"
 #include "Mountain/resource/resource_manager.hpp"
 
 Piece::Piece(const bool isWhite, const PieceType pieceType, const Vector2i position)
-    : isWhite(isWhite), pieceType(pieceType), position(position)
+    : isWhite(isWhite), pieceType(pieceType), globalPosition(ChessBoard::ToPixels(position))
 {
     scaling = Vector2(0.363f);
 }
@@ -15,13 +16,12 @@ void Piece::Render()
 {
     const int index = isWhite ? static_cast<int>(pieceType) : static_cast<int>(pieceType) + 6;
 
-    Vector2 pos = ChessBoard::ToPixels(position);
-    Mountain::Draw::Texture(*piecesTextures[index], ChessBoard::ToPixels(position), scaling);
+    Mountain::Draw::Texture(*piecesTextures[index], globalPosition, scaling);
 }
 
 void Piece::Move(const Vector2i newPosition)
 {
-    position = newPosition;
+    globalPosition = ChessBoard::ToPixels(newPosition);
 }
 
 void Piece::LoadResources()
