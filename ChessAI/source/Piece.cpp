@@ -6,8 +6,8 @@
 #include "Mountain/rendering/draw.hpp"
 #include "Mountain/resource/resource_manager.hpp"
 
-Piece::Piece(const bool isWhite, const PieceType pieceType, const Vector2i position)
-    : isWhite(isWhite), pieceType(pieceType), globalPosition(ChessBoard::ToPixels(position))
+Piece::Piece(const bool isWhite, const PieceType pieceType, Tile* tile)
+    : isWhite(isWhite), pieceType(pieceType), globalPosition(tile->position), tile(tile)
 {
     scaling = Vector2(0.363f);
 }
@@ -16,7 +16,7 @@ void Piece::Render()
 {
     const int index = isWhite ? static_cast<int>(pieceType) : static_cast<int>(pieceType) + 6;
 
-    Mountain::Draw::Texture(*piecesTextures[index], globalPosition, scaling);
+    Mountain::Draw::Texture(*piecesTextures[index], globalPosition, scaling, 0.f, Vector2(0.5f));
 }
 
 void Piece::Move(const Vector2i newPosition)
