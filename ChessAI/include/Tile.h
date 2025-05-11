@@ -3,11 +3,18 @@
 
 class Tile
 {
+    friend bool operator==(const Tile& lhs, const Tile& rhs);
+
+    friend bool operator!=(const Tile& lhs, const Tile& rhs);
+
 public:
     Vector2 position;
-    float size;
+    static inline float size;
 
 public:
     Tile();
-    Tile(Vector2 position, float size);
+    explicit Tile(Vector2 position);
+
+public:
+    static void Initialize();
 };

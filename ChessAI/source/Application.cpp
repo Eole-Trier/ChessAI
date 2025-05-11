@@ -23,6 +23,7 @@ void Application::LoadResources()
     Mountain::ResourceManager::LoadAll();
     ChessBoard::LoadResources();
     chessBoard->Initialize();
+    Tile::Initialize();
 }
 
 void Application::Shutdown()

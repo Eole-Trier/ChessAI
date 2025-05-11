@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include "Maths/vector2i.hpp"
 #include "Mountain/resource/texture.hpp"
 
 class Tile;
@@ -23,16 +22,26 @@ public:
     bool isWhite;
     PieceType pieceType = PieceType::Pawn;
     Vector2 globalPosition;
+    Vector2i tilePos;
     Vector2 scaling;
 
     Tile* tile;
 
+    bool isMoved = false;
     bool isDragged = false;
 
 public:
     Piece(bool isWhite, PieceType pieceType, Tile* tile);
+    ~Piece();
     void Render();
     void Move(Vector2i newPosition);
+    void GetAvailableTiles(Mountain::List<Tile>& result) const;
+    void GetPawnAvailableTiles(Mountain::List<Tile>& result) const;
+    void GetBishopAvailableTiles(Mountain::List<Tile>& result) const;
+    void GetKnightAvailableTiles(Mountain::List<Tile>& result) const;
+    void GetRookAvailableTiles(Mountain::List<Tile>& result) const;
+    void GetQueenAvailableTiles(Mountain::List<Tile>& result) const;
+    void GetKingAvailableTiles(Mountain::List<Tile>& result) const;
 
 public:
     static void LoadResources();

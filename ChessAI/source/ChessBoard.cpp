@@ -40,7 +40,7 @@ void ChessBoard::InitTiles() const
     {
         for (uint8_t j = 0; j < 8; j++)
         {
-            const Tile tile = Tile(Vector2(tileSize * static_cast<float>(i) + halfTileSize, tileSize * static_cast<float>(j) + halfTileSize), tileSize);
+            const Tile tile = Tile(Vector2(tileSize * static_cast<float>(i) + halfTileSize, tileSize * static_cast<float>(j) + halfTileSize));
             tiles[i][j] = tile;
         }
     }
@@ -99,6 +99,11 @@ void ChessBoard::InitPieces()
 
 void ChessBoard::Update()
 {
+    DragAndDrop();
+}
+
+void ChessBoard::DragAndDrop()
+{
     const Vector2 mousePos = Mountain::Input::GetMousePosition();
 
     if (Mountain::Input::GetMouseButton(Mountain::MouseButton::Left, Mountain::MouseButtonStatus::Pressed))
@@ -106,7 +111,7 @@ void ChessBoard::Update()
         const Vector2i mousePosToTiles = ToTiles(mousePos);
         if (mousePosToTiles != Vector2i(-1))
         {
-            draggedPiece = GetPieceFromTile(tiles[mousePosToTiles.x][mousePosToTiles.y]);
+            draggedPiece = GetPieceFromTile(mousePosToTiles);
         }
     }
 
@@ -122,22 +127,50 @@ void ChessBoard::Update()
         {
             const Vector2i mousePosToTiles = ToTiles(mousePos);
             if (mousePosToTiles != Vector2i(-1))
-                draggedPiece->tile = &tiles[mousePosToTiles.x][mousePosToTiles.y];
-
+            {
+                Mountain::List<Tile> availableTiles;
+                draggedPiece->GetAvailableTiles(availableTiles);
+                Tile& element = tiles[mousePosToTiles.x][mousePosToTiles.y];
+                if (availableTiles.Contains(element))
+                {
+                    Piece* p = GetPieceFromTile(mousePosToTiles);
+                    if (p)
+                    {
+                        if (p->isWhite != draggedPiece->isWhite)
+                        {
+                            draggedPiece->tile = &element;
+                            draggedPiece->tilePos = mousePosToTiles;
+                            DeletePiece(p);
+                        }
+                    }
+                    else
+                    {
+                        draggedPiece->tile = &element;
+                        draggedPiece->tilePos = mousePosToTiles;
+                    }
+                }
+                draggedPiece->isMoved = true;
+            }
             draggedPiece->globalPosition = draggedPiece->tile->position;
             draggedPiece = nullptr;
         }
     }
 }
 
-Piece* ChessBoard::GetPieceFromTile(const Tile& tile)
+Piece* ChessBoard::GetPieceFromTile(const Vector2i& tilePosition)
 {
     for (Piece* piece : pieces)
     {
-        if (piece->globalPosition == tile.position)
+        if (piece->globalPosition == tiles[tilePosition.x][tilePosition.y].position)
             return piece;
     }
     return nullptr;
+}
+
+void ChessBoard::DeletePiece(Piece* piece)
+{
+    pieces.Remove(piece);
+    delete piece;
 }
 
 Vector2 ChessBoard::ToPixels(const Vector2i tilePosition)
@@ -162,6 +195,39 @@ Vector2i ChessBoard::ToTiles(const Vector2 pixelPosition)
     }
     return Vector2i(-1);
 }
+
+void ChessBoard::AddTileIfInBoard(Mountain::List<Vector2i>& tilesPos, Mountain::List<Tile>& result)
+{
+    for (const Vector2i t : tilesPos)
+    {
+        if (t.x > 7 || t.x < 0 || t.y > 7  || t.y < 0)
+        {
+            continue;
+        }
+        result.Add(ChessBoard::tiles[t.x][t.y]);
+    }
+}
+
+bool ChessBoard::IsTherePieceOnTile(const Vector2i& tilePosition)
+{
+    for (const Piece* piece : pieces)
+    {
+        if (IsOnBoard(tilePosition))
+            if (piece->globalPosition == tiles[tilePosition.x][tilePosition.y].position)
+                return true;
+    }
+    return false;
+}
+
+bool ChessBoard::IsOnBoard(const Vector2i& tilePosition)
+{
+    if (tilePosition.x > 7 || tilePosition.x < 0 || tilePosition.y > 7  || tilePosition.y < 0)
+    {
+        return false;
+    }
+    return true;
+}
+
 
 void ChessBoard::LoadResources()
 {

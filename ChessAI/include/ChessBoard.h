@@ -9,7 +9,7 @@ public:
     float boardSize;
     Vector2 position;
     Vector2 scaling;
-    Mountain::List<Piece*> pieces;
+    static inline Mountain::List<Piece*> pieces;
     static inline std::array<std::array<Tile, 8>, 8> tiles;
     Piece* draggedPiece;
 
@@ -23,13 +23,18 @@ public:
     void InitTiles() const;
     void InitPieces();
     void Update();
-    Piece* GetPieceFromTile(const Tile& tile);
-
+    void DragAndDrop();
+    Piece* GetPieceFromTile(const Vector2i& tilePosition);
+    void DeletePiece(Piece* piece);
 public:
     static void LoadResources();
     [[nodiscard]] static Vector2 ToPixels(Vector2i tilePosition);
     [[nodiscard]] static Vector2i ToTiles(Vector2 pixelPosition);
+    static void AddTileIfInBoard(Mountain::List<Vector2i>& tilesPos, Mountain::List<Tile>& result);
+    static bool IsTherePieceOnTile(const Vector2i& tilePosition);
+    static bool IsOnBoard(const Vector2i& tilePosition);
 
-private:
+public:
     static inline Mountain::Pointer<Mountain::Texture> boardTexture;
 };
+
