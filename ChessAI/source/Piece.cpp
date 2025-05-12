@@ -116,6 +116,76 @@ void Piece::GetKnightAvailableTiles(Mountain::List<Tile>& result) const
 
 void Piece::GetBishopAvailableTiles(Mountain::List<Tile>& result) const
 {
+    Mountain::List<Vector2i> tilesPos;
+
+    int i = 1;
+    Vector2i currTile = tilePos + Vector2i(i, i);
+    while (ChessBoard::IsOnBoard(currTile) && !ChessBoard::IsTherePieceOnTile(currTile))
+    {
+        tilesPos.Add(currTile);
+        i++;
+        currTile += Vector2i(1);
+    }
+    if (ChessBoard::IsOnBoard(currTile))
+    {
+        const Piece* p = ChessBoard::GetPieceFromTile(currTile);
+        if (p)
+            if (p->isWhite != isWhite)
+                tilesPos.Add(currTile);
+    }
+
+    i = 1;
+    currTile = tilePos + Vector2i(i, -i);
+    while (ChessBoard::IsOnBoard(currTile) && !ChessBoard::IsTherePieceOnTile(currTile))
+    {
+        tilesPos.Add(currTile);
+        i++;
+        currTile += Vector2i(1, -1);
+    }
+
+    if (ChessBoard::IsOnBoard(currTile))
+    {
+        const Piece* p = ChessBoard::GetPieceFromTile(currTile);
+        if (p)
+            if (p->isWhite != isWhite)
+                tilesPos.Add(currTile);
+    }
+
+    i = 1;
+    currTile = tilePos + Vector2i(-i, i);
+    while (ChessBoard::IsOnBoard(currTile) && !ChessBoard::IsTherePieceOnTile(currTile))
+    {
+        tilesPos.Add(currTile);
+        i++;
+        currTile += Vector2i(-1, 1);
+    }
+
+    if (ChessBoard::IsOnBoard(currTile))
+    {
+        const Piece* p = ChessBoard::GetPieceFromTile(currTile);
+        if (p)
+            if (p->isWhite != isWhite)
+                tilesPos.Add(currTile);
+    }
+
+    i = 1;
+    currTile = tilePos + Vector2i(-i, -i);
+    while (ChessBoard::IsOnBoard(currTile) && !ChessBoard::IsTherePieceOnTile(currTile))
+    {
+        tilesPos.Add(currTile);
+        i++;
+        currTile += Vector2i(-1, -1);
+    }
+
+    if (ChessBoard::IsOnBoard(currTile))
+    {
+        const Piece* p = ChessBoard::GetPieceFromTile(currTile);
+        if (p)
+            if (p->isWhite != isWhite)
+                tilesPos.Add(currTile);
+    }
+
+    ChessBoard::AddTileIfInBoard(tilesPos, result);
 }
 
 void Piece::GetRookAvailableTiles(Mountain::List<Tile>& result) const

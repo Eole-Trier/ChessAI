@@ -157,16 +157,6 @@ void ChessBoard::DragAndDrop()
     }
 }
 
-Piece* ChessBoard::GetPieceFromTile(const Vector2i& tilePosition)
-{
-    for (Piece* piece : pieces)
-    {
-        if (piece->globalPosition == tiles[tilePosition.x][tilePosition.y].position)
-            return piece;
-    }
-    return nullptr;
-}
-
 void ChessBoard::DeletePiece(Piece* piece)
 {
     pieces.Remove(piece);
@@ -196,14 +186,22 @@ Vector2i ChessBoard::ToTiles(const Vector2 pixelPosition)
     return Vector2i(-1);
 }
 
+Piece* ChessBoard::GetPieceFromTile(const Vector2i& tilePosition)
+{
+    for (Piece* piece : pieces)
+    {
+        if (piece->globalPosition == tiles[tilePosition.x][tilePosition.y].position)
+            return piece;
+    }
+    return nullptr;
+}
+
 void ChessBoard::AddTileIfInBoard(Mountain::List<Vector2i>& tilesPos, Mountain::List<Tile>& result)
 {
     for (const Vector2i t : tilesPos)
     {
-        if (t.x > 7 || t.x < 0 || t.y > 7  || t.y < 0)
-        {
+        if (!IsOnBoard(t))
             continue;
-        }
         result.Add(ChessBoard::tiles[t.x][t.y]);
     }
 }

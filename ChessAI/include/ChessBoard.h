@@ -24,12 +24,12 @@ public:
     void InitPieces();
     void Update();
     void DragAndDrop();
-    Piece* GetPieceFromTile(const Vector2i& tilePosition);
     void DeletePiece(Piece* piece);
 public:
     static void LoadResources();
     [[nodiscard]] static Vector2 ToPixels(Vector2i tilePosition);
     [[nodiscard]] static Vector2i ToTiles(Vector2 pixelPosition);
+    static Piece* GetPieceFromTile(const Vector2i& tilePosition);
     static void AddTileIfInBoard(Mountain::List<Vector2i>& tilesPos, Mountain::List<Tile>& result);
     static bool IsTherePieceOnTile(const Vector2i& tilePosition);
     static bool IsOnBoard(const Vector2i& tilePosition);
