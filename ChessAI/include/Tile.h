@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Maths/vector2.hpp"
+#include "Maths/vector2i.hpp"
 
 class Tile
 {
@@ -9,11 +10,12 @@ class Tile
 
 public:
     Vector2 position;
+    Vector2i tilePosition;
     static inline float size;
 
 public:
     Tile();
-    explicit Tile(Vector2 position);
+    explicit Tile(Vector2i tilePosition);
 
 public:
     static void Initialize();

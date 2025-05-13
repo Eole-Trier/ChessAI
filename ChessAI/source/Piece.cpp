@@ -10,7 +10,7 @@ Piece::Piece(const bool isWhite, const PieceType pieceType, Tile* tile)
     : isWhite(isWhite), pieceType(pieceType), globalPosition(tile->position), tile(tile)
 {
     scaling = Vector2(0.363f);
-    tilePos = ChessBoard::ToTiles(tile->position);
+    tilePosition = tile->tilePosition;
 }
 
 Piece::~Piece()
@@ -24,12 +24,7 @@ void Piece::Render()
     Mountain::Draw::Texture(*piecesTextures[index], globalPosition, scaling, 0.f, Vector2(0.5f));
 }
 
-void Piece::Move(const Vector2i newPosition)
-{
-    globalPosition = ChessBoard::ToPixels(newPosition);
-}
-
-void Piece::GetAvailableTiles(Mountain::List<Tile>& result) const
+void Piece::GetAvailableTiles(Mountain::List<Tile*>& result) const
 {
     switch (pieceType)
     {
@@ -54,149 +49,138 @@ void Piece::GetAvailableTiles(Mountain::List<Tile>& result) const
     }
 }
 
-void Piece::GetPawnAvailableTiles(Mountain::List<Tile>& result) const
+void Piece::GetPawnAvailableTiles(Mountain::List<Tile*>& result) const
 {
-    Mountain::List<Vector2i> tilesPos;
-
     if (!isMoved)
     {
         if (isWhite)
-            tilesPos.Add(tilePos + Vector2i(0, -2));
+            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(0, -2)));
         else
-            tilesPos.Add(tilePos + Vector2i(0, 2));
+            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(0, 2)));
     }
     if (isWhite)
     {
-        tilesPos.Add(tilePos + Vector2i(0, -1));
-        if (ChessBoard::IsTherePieceOnTile(tilePos + Vector2i(-1, -1)))
+        result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(0, -1)));
+        if (ChessBoard::IsTherePieceOnTile(tilePosition + Vector2i(-1, -1)))
         {
-            tilesPos.Add(tilePos + Vector2i(-1, -1));
+            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, -1)));
         }
-        if (ChessBoard::IsTherePieceOnTile(tilePos + Vector2i(1, -1)))
+        if (ChessBoard::IsTherePieceOnTile(tilePosition + Vector2i(1, -1)))
         {
-            tilesPos.Add(tilePos + Vector2i(1, -1));
+            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(1, -1)));
         }
     }
     else
     {
-        tilesPos.Add(tilePos + Vector2i(0, 1));
-        if (ChessBoard::IsTherePieceOnTile(tilePos + Vector2i(-1, 1)))
+        result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(0, 1)));
+        if (ChessBoard::IsTherePieceOnTile(tilePosition + Vector2i(-1, 1)))
         {
-            tilesPos.Add(tilePos + Vector2i(-1, 1));
+            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, 1)));
         }
-        if (ChessBoard::IsTherePieceOnTile(tilePos + Vector2i(1, 1)))
+        if (ChessBoard::IsTherePieceOnTile(tilePosition + Vector2i(1, 1)))
         {
-            tilesPos.Add(tilePos + Vector2i(1, 1));
+            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(1, 1)));
         }
     }
 
-    if (ChessBoard::IsTherePieceOnTile(tilesPos[0]))
-        tilesPos.Remove(tilesPos[0]);
+    if (ChessBoard::IsTherePieceOnTile(result[0]->tilePosition))
+        result.Remove(result[0]);
 
     if (!isMoved)
-        if (ChessBoard::IsTherePieceOnTile(tilesPos[0]))
-            tilesPos.Remove(tilesPos[0]);
-
-    ChessBoard::AddTileIfInBoard(tilesPos, result);
+        if (ChessBoard::IsTherePieceOnTile(result[0]->tilePosition))
+            result.Remove(result[0]);
 }
 
-void Piece::GetKnightAvailableTiles(Mountain::List<Tile>& result) const
+void Piece::GetKnightAvailableTiles(Mountain::List<Tile*>& result) const
 {
-    Mountain::List<Vector2i> tilesPos;
-    tilesPos.Add(tilePos + Vector2i(1, 2));
-    tilesPos.Add(tilePos + Vector2i(1, -2));
-    tilesPos.Add(tilePos + Vector2i(2, 1));
-    tilesPos.Add(tilePos + Vector2i(2, -1));
-    tilesPos.Add(tilePos + Vector2i(-1, 2));
-    tilesPos.Add(tilePos + Vector2i(-1, -2));
-    tilesPos.Add(tilePos + Vector2i(-2, 1));
-    tilesPos.Add(tilePos + Vector2i(-2, -1));
-    ChessBoard::AddTileIfInBoard(tilesPos, result);
+    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(1, 2)));
+    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(1, -2)));
+    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(2, 1)));
+    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(2, -1)));
+    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, 2)));
+    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, -2)));
+    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-2, 1)));
+    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-2, -1)));
 }
 
-void Piece::GetBishopAvailableTiles(Mountain::List<Tile>& result) const
+void Piece::GetBishopAvailableTiles(Mountain::List<Tile*>& result) const
 {
-    Mountain::List<Vector2i> tilesPos;
-
-    int i = 1;
-    Vector2i currTile = tilePos + Vector2i(i, i);
-    while (ChessBoard::IsOnBoard(currTile) && !ChessBoard::IsTherePieceOnTile(currTile))
+    for (int x = -1; x <= 1; x += 2)
     {
-        tilesPos.Add(currTile);
-        i++;
-        currTile += Vector2i(1);
-    }
-    if (ChessBoard::IsOnBoard(currTile))
-    {
-        const Piece* p = ChessBoard::GetPieceFromTile(currTile);
-        if (p)
-            if (p->isWhite != isWhite)
-                tilesPos.Add(currTile);
-    }
+        for (int y = -1; y <= 1; y += 2)
+        {
+            int offset = 1;
+            Tile* tileBishop = ChessBoard::GetTileSafe({tilePosition.x + x, tilePosition.y + y});
 
-    i = 1;
-    currTile = tilePos + Vector2i(i, -i);
-    while (ChessBoard::IsOnBoard(currTile) && !ChessBoard::IsTherePieceOnTile(currTile))
-    {
-        tilesPos.Add(currTile);
-        i++;
-        currTile += Vector2i(1, -1);
-    }
+            while (tileBishop != nullptr)
+            {
+                if (ChessBoard::IsTherePieceOnTile(tileBishop->tilePosition))
+                {
+                    const Piece* p = ChessBoard::GetPieceFromTileSafe(tileBishop->tilePosition);
+                    if (p->isWhite != isWhite)
+                        result.Add(tileBishop);
+                    break;
+                }
+                result.Add(tileBishop);
 
-    if (ChessBoard::IsOnBoard(currTile))
-    {
-        const Piece* p = ChessBoard::GetPieceFromTile(currTile);
-        if (p)
-            if (p->isWhite != isWhite)
-                tilesPos.Add(currTile);
+                offset++;
+                tileBishop = ChessBoard::GetTileSafe({tilePosition.x + x * offset, tilePosition.y + y * offset});
+            }
+        }
     }
-
-    i = 1;
-    currTile = tilePos + Vector2i(-i, i);
-    while (ChessBoard::IsOnBoard(currTile) && !ChessBoard::IsTherePieceOnTile(currTile))
-    {
-        tilesPos.Add(currTile);
-        i++;
-        currTile += Vector2i(-1, 1);
-    }
-
-    if (ChessBoard::IsOnBoard(currTile))
-    {
-        const Piece* p = ChessBoard::GetPieceFromTile(currTile);
-        if (p)
-            if (p->isWhite != isWhite)
-                tilesPos.Add(currTile);
-    }
-
-    i = 1;
-    currTile = tilePos + Vector2i(-i, -i);
-    while (ChessBoard::IsOnBoard(currTile) && !ChessBoard::IsTherePieceOnTile(currTile))
-    {
-        tilesPos.Add(currTile);
-        i++;
-        currTile += Vector2i(-1, -1);
-    }
-
-    if (ChessBoard::IsOnBoard(currTile))
-    {
-        const Piece* p = ChessBoard::GetPieceFromTile(currTile);
-        if (p)
-            if (p->isWhite != isWhite)
-                tilesPos.Add(currTile);
-    }
-
-    ChessBoard::AddTileIfInBoard(tilesPos, result);
 }
 
-void Piece::GetRookAvailableTiles(Mountain::List<Tile>& result) const
+void Piece::GetRookAvailableTiles(Mountain::List<Tile*>& result) const
 {
+    for (int i = -1; i <= 1; i += 2)
+    {
+        int offset = 1;
+        Tile* tileRook = ChessBoard::GetTileSafe({tilePosition.x + i, tilePosition.y});
+
+        while (tileRook != nullptr)
+        {
+            if (ChessBoard::IsTherePieceOnTile(tileRook->tilePosition))
+            {
+                const Piece* p = ChessBoard::GetPieceFromTileSafe(tileRook->tilePosition);
+                if (p->isWhite != isWhite)
+                    result.Add(tileRook);
+                break;
+            }
+            result.Add(tileRook);
+
+            offset++;
+            tileRook = ChessBoard::GetTileSafe({tilePosition.x + i * offset, tilePosition.y});
+        }
+    }
+    for (int i = -1; i <= 1; i += 2)
+    {
+        int offset = 1;
+        Tile* tileRook = ChessBoard::GetTileSafe({tilePosition.x, tilePosition.y + i});
+
+        while (tileRook != nullptr)
+        {
+            if (ChessBoard::IsTherePieceOnTile(tileRook->tilePosition))
+            {
+                const Piece* p = ChessBoard::GetPieceFromTileSafe(tileRook->tilePosition);
+                if (p->isWhite != isWhite)
+                    result.Add(tileRook);
+                break;
+            }
+            result.Add(tileRook);
+
+            offset++;
+            tileRook = ChessBoard::GetTileSafe({tilePosition.x, tilePosition.y + i * offset});
+        }
+    }
 }
 
-void Piece::GetQueenAvailableTiles(Mountain::List<Tile>& result) const
+void Piece::GetQueenAvailableTiles(Mountain::List<Tile*>& result) const
 {
+    GetBishopAvailableTiles(result);
+    GetRookAvailableTiles(result);
 }
 
-void Piece::GetKingAvailableTiles(Mountain::List<Tile>& result) const
+void Piece::GetKingAvailableTiles(Mountain::List<Tile*>& result) const
 {
 }
 

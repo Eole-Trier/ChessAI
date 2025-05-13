@@ -11,6 +11,7 @@ ChessBoard::ChessBoard()
     position = {0, 0};
     scaling = {1, 1};
     draggedPiece = nullptr;
+    selectedPiece = nullptr;
 }
 
 ChessBoard::~ChessBoard()
@@ -22,6 +23,11 @@ void ChessBoard::Render()
 {
     Mountain::Draw::Texture(*boardTexture, position, scaling);
     pieces.Iterate([](Piece** piece){ (*piece)->Render(); });
+    for (const Tile* tile : availableTiles)
+    {
+        if (tile)
+            Mountain::Draw::Circle(tile->position, Tile::size/3.f);
+    }
 }
 
 void ChessBoard::Initialize()
@@ -33,15 +39,11 @@ void ChessBoard::Initialize()
 
 void ChessBoard::InitTiles() const
 {
-    const float tileSize = boardSize/8.f;
-    const float halfTileSize = tileSize / 2.f;
-
     for (uint8_t i = 0; i < 8; i++)
     {
         for (uint8_t j = 0; j < 8; j++)
         {
-            const Tile tile = Tile(Vector2(tileSize * static_cast<float>(i) + halfTileSize, tileSize * static_cast<float>(j) + halfTileSize));
-            tiles[i][j] = tile;
+            tiles[i][j] = new Tile({ i, j });
         }
     }
 }
@@ -50,31 +52,31 @@ void ChessBoard::InitPieces()
 {
     for (uint8_t i = 0; i < 8; i++)
     {
-        Piece* wPawn = new Piece(true, PieceType::Pawn, &tiles[i][6]);
-        Piece* bPawn = new Piece(false, PieceType::Pawn, &tiles[i][1]);
+        Piece* wPawn = new Piece(true, PieceType::Pawn, tiles[i][6]);
+        Piece* bPawn = new Piece(false, PieceType::Pawn, tiles[i][1]);
         pieces.Add(wPawn);
         pieces.Add(bPawn);
     }
 
-    Piece* wRook1 = new Piece(true, PieceType::Rook, &tiles[0][7]);
-    Piece* wRook2 = new Piece(true, PieceType::Rook, &tiles[7][7]);
-    Piece* bRook1 = new Piece(false, PieceType::Rook, &tiles[0][0]);
-    Piece* bRook2 = new Piece(false, PieceType::Rook, &tiles[7][0]);
+    Piece* wRook1 = new Piece(true, PieceType::Rook, tiles[0][7]);
+    Piece* wRook2 = new Piece(true, PieceType::Rook, tiles[7][7]);
+    Piece* bRook1 = new Piece(false, PieceType::Rook, tiles[0][0]);
+    Piece* bRook2 = new Piece(false, PieceType::Rook, tiles[7][0]);
 
-    Piece* wKnight1 = new Piece(true, PieceType::Knight, &tiles[1][7]);
-    Piece* wKnight2 = new Piece(true, PieceType::Knight, &tiles[6][7]);
-    Piece* bKnight1  = new Piece(false, PieceType::Knight, &tiles[1][0]);
-    Piece* bKnight2  = new Piece(false, PieceType::Knight, &tiles[6][0]);
+    Piece* wKnight1 = new Piece(true, PieceType::Knight, tiles[1][7]);
+    Piece* wKnight2 = new Piece(true, PieceType::Knight, tiles[6][7]);
+    Piece* bKnight1  = new Piece(false, PieceType::Knight, tiles[1][0]);
+    Piece* bKnight2  = new Piece(false, PieceType::Knight, tiles[6][0]);
 
-    Piece* wBishop1 = new Piece(true, PieceType::Bishop, &tiles[2][7]);
-    Piece* wBishop2 = new Piece(true, PieceType::Bishop, &tiles[5][7]);
-    Piece* bBishop1  = new Piece(false, PieceType::Bishop, &tiles[2][0]);
-    Piece* bBishop2  = new Piece(false, PieceType::Bishop, &tiles[5][0]);
+    Piece* wBishop1 = new Piece(true, PieceType::Bishop, tiles[2][7]);
+    Piece* wBishop2 = new Piece(true, PieceType::Bishop, tiles[5][7]);
+    Piece* bBishop1  = new Piece(false, PieceType::Bishop, tiles[2][0]);
+    Piece* bBishop2  = new Piece(false, PieceType::Bishop, tiles[5][0]);
 
-    Piece* wQueen = new Piece(true, PieceType::Queen, &tiles[3][7]);
-    Piece* wKing = new Piece(true, PieceType::King, &tiles[4][7]);
-    Piece* bQueen  = new Piece(false, PieceType::Queen, &tiles[3][0]);
-    Piece* bKing  = new Piece(false, PieceType::King, &tiles[4][0]);
+    Piece* wQueen = new Piece(true, PieceType::Queen, tiles[3][7]);
+    Piece* wKing = new Piece(true, PieceType::King, tiles[4][7]);
+    Piece* bQueen  = new Piece(false, PieceType::Queen, tiles[3][0]);
+    Piece* bKing  = new Piece(false, PieceType::King, tiles[4][0]);
 
     pieces.Add(wRook1);
     pieces.Add(wRook2);
@@ -109,10 +111,11 @@ void ChessBoard::DragAndDrop()
     if (Mountain::Input::GetMouseButton(Mountain::MouseButton::Left, Mountain::MouseButtonStatus::Pressed))
     {
         const Vector2i mousePosToTiles = ToTiles(mousePos);
-        if (mousePosToTiles != Vector2i(-1))
-        {
-            draggedPiece = GetPieceFromTile(mousePosToTiles);
-        }
+        draggedPiece = GetPieceFromTileSafe(mousePosToTiles);
+        selectedPiece = draggedPiece;
+        availableTiles.Clear();
+        if (selectedPiece)
+            selectedPiece->GetAvailableTiles(availableTiles);
     }
 
     if (Mountain::Input::GetMouseButton(Mountain::MouseButton::Left, Mountain::MouseButtonStatus::Down))
@@ -126,33 +129,35 @@ void ChessBoard::DragAndDrop()
         if (draggedPiece)
         {
             const Vector2i mousePosToTiles = ToTiles(mousePos);
-            if (mousePosToTiles != Vector2i(-1))
+            if (IsOnBoard(mousePosToTiles))
             {
-                Mountain::List<Tile> availableTiles;
-                draggedPiece->GetAvailableTiles(availableTiles);
-                Tile& element = tiles[mousePosToTiles.x][mousePosToTiles.y];
-                if (availableTiles.Contains(element))
+                Mountain::List<Tile*> pieceAvailableTiles;
+                draggedPiece->GetAvailableTiles(pieceAvailableTiles);
+                Tile* element = tiles[mousePosToTiles.x][mousePosToTiles.y];
+                if (pieceAvailableTiles.Contains(element))
                 {
                     Piece* p = GetPieceFromTile(mousePosToTiles);
                     if (p)
                     {
                         if (p->isWhite != draggedPiece->isWhite)
                         {
-                            draggedPiece->tile = &element;
-                            draggedPiece->tilePos = mousePosToTiles;
+                            draggedPiece->tile = element;
+                            draggedPiece->tilePosition = mousePosToTiles;
                             DeletePiece(p);
                         }
                     }
                     else
                     {
-                        draggedPiece->tile = &element;
-                        draggedPiece->tilePos = mousePosToTiles;
+                        draggedPiece->tile = element;
+                        draggedPiece->tilePosition = mousePosToTiles;
                     }
+                    availableTiles.Clear();
+                    draggedPiece->isMoved = true;
                 }
-                draggedPiece->isMoved = true;
             }
             draggedPiece->globalPosition = draggedPiece->tile->position;
             draggedPiece = nullptr;
+            selectedPiece = nullptr;
         }
     }
 }
@@ -165,44 +170,31 @@ void ChessBoard::DeletePiece(Piece* piece)
 
 Vector2 ChessBoard::ToPixels(const Vector2i tilePosition)
 {
-    return tiles[tilePosition.x][tilePosition.y].position;
+    return tilePosition * Tile::size + Vector2::One() * Tile::size/2.f;
 }
 
 Vector2i ChessBoard::ToTiles(const Vector2 pixelPosition)
 {
-    // TODO optimize tah refactor
-    const float halfSize = tiles[0][0].size/2.f;
-    for (uint8_t i = 0; i < 8; i++)
-    {
-        for (uint8_t j = 0; j < 8; j++)
-        {
-            if (pixelPosition.x >= tiles[i][j].position.x - halfSize && pixelPosition.x <= tiles[i][j].position.x + halfSize &&
-                pixelPosition.y >= tiles[i][j].position.y - halfSize && pixelPosition.y <= tiles[i][j].position.y + halfSize)
-            {
-                return Vector2i(i, j);
-            }
-        }
-    }
-    return Vector2i(-1);
+    return Vector2i((pixelPosition - Vector2::One() * Tile::size/2.f) / Tile::size);
 }
 
 Piece* ChessBoard::GetPieceFromTile(const Vector2i& tilePosition)
 {
     for (Piece* piece : pieces)
     {
-        if (piece->globalPosition == tiles[tilePosition.x][tilePosition.y].position)
+        if (piece->globalPosition == tiles[tilePosition.x][tilePosition.y]->position)
             return piece;
     }
     return nullptr;
 }
 
-void ChessBoard::AddTileIfInBoard(Mountain::List<Vector2i>& tilesPos, Mountain::List<Tile>& result)
+void ChessBoard::AddTileIfInBoard(Mountain::List<Vector2i>& tilesPos, Mountain::List<Tile*>& result)
 {
     for (const Vector2i t : tilesPos)
     {
         if (!IsOnBoard(t))
             continue;
-        result.Add(ChessBoard::tiles[t.x][t.y]);
+        result.Add(tiles[t.x][t.y]);
     }
 }
 
@@ -211,7 +203,7 @@ bool ChessBoard::IsTherePieceOnTile(const Vector2i& tilePosition)
     for (const Piece* piece : pieces)
     {
         if (IsOnBoard(tilePosition))
-            if (piece->globalPosition == tiles[tilePosition.x][tilePosition.y].position)
+            if (piece->globalPosition == tiles[tilePosition.x][tilePosition.y]->position)
                 return true;
     }
     return false;
@@ -226,6 +218,21 @@ bool ChessBoard::IsOnBoard(const Vector2i& tilePosition)
     return true;
 }
 
+Tile* ChessBoard::GetTileSafe(const Vector2i& tilePosition)
+{
+    if (IsOnBoard(tilePosition))
+    {
+        return tiles[tilePosition.x][tilePosition.y];
+    }
+    return nullptr;
+}
+
+Piece* ChessBoard::GetPieceFromTileSafe(const Vector2i& tilePosition)
+{
+    if (IsOnBoard(tilePosition))
+        return GetPieceFromTile(tilePosition);
+    return nullptr;
+}
 
 void ChessBoard::LoadResources()
 {

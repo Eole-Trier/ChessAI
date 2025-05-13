@@ -5,11 +5,12 @@
 Tile::Tile()
 {
     position = Vector2::Zero();
+    tilePosition = Vector2i::Zero();
     size = 0;
 }
 
-Tile::Tile(const Vector2 position)
-    : position(position)
+Tile::Tile(const Vector2i tilePosition)
+    : position(ChessBoard::ToPixels(tilePosition)), tilePosition(tilePosition)
 {
 }
 

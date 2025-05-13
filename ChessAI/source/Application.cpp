@@ -22,8 +22,8 @@ void Application::LoadResources()
     Mountain::FileManager::LoadDirectory("assets");
     Mountain::ResourceManager::LoadAll();
     ChessBoard::LoadResources();
-    chessBoard->Initialize();
     Tile::Initialize();
+    chessBoard->Initialize();
 }
 
 void Application::Shutdown()
