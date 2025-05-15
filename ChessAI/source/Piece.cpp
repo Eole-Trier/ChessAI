@@ -51,48 +51,30 @@ void Piece::GetAvailableTiles(Mountain::List<Tile*>& result) const
 
 void Piece::GetPawnAvailableTiles(Mountain::List<Tile*>& result) const
 {
-    if (!isMoved)
+    const Vector2i forward = isWhite ? -Vector2i::UnitY() : Vector2i::UnitY();
+
+    const Vector2i forwardTilePosition = tilePosition + forward;
+    if (!ChessBoard::IsTherePieceOnTile(forwardTilePosition))
     {
-        if (isWhite)
-            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(0, -2)));
-        else
-            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(0, 2)));
-    }
-    if (isWhite)
-    {
-        result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(0, -1)));
-        if (ChessBoard::IsTherePieceOnTile(tilePosition + Vector2i(-1, -1)))
-        {
-            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, -1)));
-        }
-        if (ChessBoard::IsTherePieceOnTile(tilePosition + Vector2i(1, -1)))
-        {
-            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(1, -1)));
-        }
-    }
-    else
-    {
-        result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(0, 1)));
-        if (ChessBoard::IsTherePieceOnTile(tilePosition + Vector2i(-1, 1)))
-        {
-            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, 1)));
-        }
-        if (ChessBoard::IsTherePieceOnTile(tilePosition + Vector2i(1, 1)))
-        {
-            result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(1, 1)));
-        }
+        result.Add(ChessBoard::GetTileSafe(forwardTilePosition));
+
+        const Vector2i twoTilesForwardTilePosition = forwardTilePosition + forward;
+        if (!isMoved && !ChessBoard::IsTherePieceOnTile(twoTilesForwardTilePosition))
+            result.Add(ChessBoard::GetTileSafe(twoTilesForwardTilePosition));
     }
 
-    if (ChessBoard::IsTherePieceOnTile(result[0]->tilePosition))
-        result.Remove(result[0]);
+    const Piece* topLeftPiece = ChessBoard::GetPieceFromTileSafe(tilePosition + (forward - Vector2i::UnitX()));
+    if (topLeftPiece && topLeftPiece->isWhite != isWhite)
+        result.Add(topLeftPiece->tile);
 
-    if (!isMoved)
-        if (ChessBoard::IsTherePieceOnTile(result[0]->tilePosition))
-            result.Remove(result[0]);
+    const Piece* topRightPiece = ChessBoard::GetPieceFromTileSafe(tilePosition + (forward + Vector2i::UnitX()));
+    if (topRightPiece && topRightPiece->isWhite != isWhite)
+        result.Add(topRightPiece->tile);
 }
 
 void Piece::GetKnightAvailableTiles(Mountain::List<Tile*>& result) const
 {
+    
     result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(1, 2)));
     result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(1, -2)));
     result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(2, 1)));

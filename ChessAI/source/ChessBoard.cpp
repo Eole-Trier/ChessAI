@@ -144,15 +144,16 @@ void ChessBoard::DragAndDrop()
                             draggedPiece->tile = element;
                             draggedPiece->tilePosition = mousePosToTiles;
                             DeletePiece(p);
+                            draggedPiece->isMoved = true;
                         }
                     }
                     else
                     {
                         draggedPiece->tile = element;
                         draggedPiece->tilePosition = mousePosToTiles;
+                        draggedPiece->isMoved = true;
                     }
                     availableTiles.Clear();
-                    draggedPiece->isMoved = true;
                 }
             }
             draggedPiece->globalPosition = draggedPiece->tile->position;
