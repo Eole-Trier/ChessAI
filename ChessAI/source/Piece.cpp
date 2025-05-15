@@ -74,15 +74,29 @@ void Piece::GetPawnAvailableTiles(Mountain::List<Tile*>& result) const
 
 void Piece::GetKnightAvailableTiles(Mountain::List<Tile*>& result) const
 {
-    
-    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(1, 2)));
-    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(1, -2)));
-    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(2, 1)));
-    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(2, -1)));
-    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, 2)));
-    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, -2)));
-    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-2, 1)));
-    result.Add(ChessBoard::GetTileSafe(tilePosition + Vector2i(-2, -1)));
+    const std::array tiles = {
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(1, 2)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(1, -2)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(2, 1)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(2, -1)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, 2)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, -2)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(-2, 1)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(-2, -1))
+    };
+
+    for (Tile* tile : tiles)
+    {
+        if (!tile)
+            continue;
+
+        const Piece* piece = ChessBoard::GetPieceFromTileSafe(tile->tilePosition);
+        if (piece)
+            if (piece->isWhite == isWhite)
+                continue;
+
+        result.Add(tile);
+    }
 }
 
 void Piece::GetBishopAvailableTiles(Mountain::List<Tile*>& result) const
@@ -164,6 +178,29 @@ void Piece::GetQueenAvailableTiles(Mountain::List<Tile*>& result) const
 
 void Piece::GetKingAvailableTiles(Mountain::List<Tile*>& result) const
 {
+    const std::array tiles = {
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(1, 1)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(1, 0)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(1, -1)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(0, -1)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, -1)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, 0)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(-1, 1)),
+        ChessBoard::GetTileSafe(tilePosition + Vector2i(0, 1))
+    };
+
+    for (Tile* tile : tiles)
+    {
+        if (!tile)
+            continue;
+
+        const Piece* piece = ChessBoard::GetPieceFromTileSafe(tile->tilePosition);
+        if (piece)
+            if (piece->isWhite == isWhite)
+                continue;
+
+        result.Add(tile);
+    }
 }
 
 void Piece::LoadResources()

@@ -26,7 +26,7 @@ void ChessBoard::Render()
     for (const Tile* tile : availableTiles)
     {
         if (tile)
-            Mountain::Draw::Circle(tile->position, Tile::size/3.f);
+            Mountain::Draw::Circle(tile->position, Tile::size/3.f, Vector2::One(), Mountain::Color::Black());
     }
 }
 
