@@ -14,6 +14,7 @@ public:
     static inline Mountain::List<Tile*> availableTiles;
     Piece* draggedPiece;
     Piece* selectedPiece;
+    static inline Piece* enPassantPiece;
 
 public:
     ChessBoard();

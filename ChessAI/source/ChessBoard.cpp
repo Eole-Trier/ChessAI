@@ -133,15 +133,45 @@ void ChessBoard::DragAndDrop()
             {
                 Mountain::List<Tile*> pieceAvailableTiles;
                 draggedPiece->GetAvailableTiles(pieceAvailableTiles);
-                Tile* element = tiles[mousePosToTiles.x][mousePosToTiles.y];
-                if (pieceAvailableTiles.Contains(element))
+                Tile* droppedTile = tiles[mousePosToTiles.x][mousePosToTiles.y];
+                if (pieceAvailableTiles.Contains(droppedTile))
                 {
+                    if (draggedPiece->pieceType == PieceType::Pawn && enPassantPiece)
+                    {
+                        const Vector2i forward = draggedPiece->isWhite ? -Vector2i::UnitY() : Vector2i::UnitY();
+                        const Vector2i topLeftTilePos = draggedPiece->tilePosition + (forward - Vector2i::UnitX());
+                        const Vector2i topRightTilePos = draggedPiece->tilePosition + (forward + Vector2i::UnitX());
+                        if (mousePosToTiles == topLeftTilePos)
+                        {
+                            const Piece* topLeftPiece = GetPieceFromTileSafe(topLeftTilePos);
+                            if (!topLeftPiece)
+                            {
+                                DeletePiece(enPassantPiece);
+                            }
+
+                        }
+                        else if (mousePosToTiles == topRightTilePos)
+                        {
+                            const Piece* topRightPiece = GetPieceFromTileSafe(topRightTilePos);
+                            if (!topRightPiece)
+                            {
+                                DeletePiece(enPassantPiece);
+                            }
+                        }
+                    }
+                    enPassantPiece = nullptr;
+                    if (draggedPiece->pieceType == PieceType::Pawn)
+                    {
+                        const Vector2i forward = draggedPiece->isWhite ? -Vector2i::UnitY() : Vector2i::UnitY();
+                        if (draggedPiece->tilePosition + forward *  2 == mousePosToTiles)
+                            enPassantPiece = draggedPiece;
+                    }
                     Piece* p = GetPieceFromTile(mousePosToTiles);
                     if (p)
                     {
                         if (p->isWhite != draggedPiece->isWhite)
                         {
-                            draggedPiece->tile = element;
+                            draggedPiece->tile = droppedTile;
                             draggedPiece->tilePosition = mousePosToTiles;
                             DeletePiece(p);
                             draggedPiece->isMoved = true;
@@ -149,7 +179,7 @@ void ChessBoard::DragAndDrop()
                     }
                     else
                     {
-                        draggedPiece->tile = element;
+                        draggedPiece->tile = droppedTile;
                         draggedPiece->tilePosition = mousePosToTiles;
                         draggedPiece->isMoved = true;
                     }

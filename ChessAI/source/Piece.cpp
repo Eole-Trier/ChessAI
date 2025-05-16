@@ -63,6 +63,19 @@ void Piece::GetPawnAvailableTiles(Mountain::List<Tile*>& result) const
             result.Add(ChessBoard::GetTileSafe(twoTilesForwardTilePosition));
     }
 
+    if (ChessBoard::enPassantPiece)
+    {
+        const Piece* rightPiece = ChessBoard::GetPieceFromTileSafe(tilePosition + Vector2i::UnitX());
+        if (rightPiece == ChessBoard::enPassantPiece)
+            result.Add(ChessBoard::GetTileSafe(rightPiece->tilePosition + forward));
+        else
+        {
+            const Piece* leftPiece = ChessBoard::GetPieceFromTileSafe(tilePosition - Vector2i::UnitX());
+            if (leftPiece == ChessBoard::enPassantPiece)
+                result.Add(ChessBoard::GetTileSafe(leftPiece->tilePosition + forward));
+        }
+    }
+
     const Piece* topLeftPiece = ChessBoard::GetPieceFromTileSafe(tilePosition + (forward - Vector2i::UnitX()));
     if (topLeftPiece && topLeftPiece->isWhite != isWhite)
         result.Add(topLeftPiece->tile);
