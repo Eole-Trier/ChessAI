@@ -12,6 +12,4 @@ public:
     void Shutdown() override;
     void Update() override;
     void Render() override;
-
-    ChessBoard* chessBoard = nullptr;
 };

@@ -13,7 +13,6 @@ Application::Application(const char* windowTitle)
 
 void Application::Initialize()
 {
-    chessBoard = new ChessBoard();
     Game::Initialize();
 }
 
@@ -23,22 +22,21 @@ void Application::LoadResources()
     Mountain::ResourceManager::LoadAll();
     ChessBoard::LoadResources();
     Tile::Initialize();
-    chessBoard->Initialize();
+    ChessBoard::Initialize();
 }
 
 void Application::Shutdown()
 {
     Game::Shutdown();
-    delete chessBoard;
 }
 
 void Application::Update()
 {
-    chessBoard->Update();
+    ChessBoard::Update();
 }
 
 void Application::Render()
 {
     Mountain::Draw::Clear(Mountain::Color::Lime());
-    chessBoard->Render();
+    ChessBoard::Render();
 }

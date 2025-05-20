@@ -32,7 +32,7 @@ public:
 
 public:
     Piece(bool isWhite, PieceType pieceType, Tile* tile);
-    ~Piece();
+
     void Render();
     void GetAvailableTiles(Mountain::List<Tile*>& result) const;
     void GetPawnAvailableTiles(Mountain::List<Tile*>& result) const;
@@ -42,9 +42,31 @@ public:
     void GetQueenAvailableTiles(Mountain::List<Tile*>& result) const;
     void GetKingAvailableTiles(Mountain::List<Tile*>& result) const;
 
+    void UpdatePosition(Tile* newTile);
+    template <size_t Size>
+    void AddTilesIfNoFreroOnIt(std::array<Tile*, Size> tiles, Mountain::List<Tile*>& result) const;
 public:
     static void LoadResources();
 
 private:
     static inline std::array<Mountain::Pointer<Mountain::Texture>, 12> piecesTextures;
 };
+
+#include "ChessBoard.h"
+
+template <size_t Size>
+void Piece::AddTilesIfNoFreroOnIt(std::array<Tile*, Size> tiles, Mountain::List<Tile*>& result) const
+{
+    for (Tile* t : tiles)
+    {
+        if (!t)
+            continue;
+
+        const Piece* piece = ChessBoard::GetPieceFromTileSafe(t->tilePosition);
+        if (piece)
+            if (piece->isWhite == isWhite)
+                continue;
+
+        result.Add(t);
+    }
+}

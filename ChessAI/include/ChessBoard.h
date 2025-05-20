@@ -1,33 +1,38 @@
 ﻿#pragma once
-#include "Piece.h"
 #include "Tile.h"
 #include "Mountain/audio/audio.hpp"
+#include "Mountain/resource/texture.hpp"
+#include "Mountain/utils/pointer.hpp"
 
-class ChessBoard
+class Piece;
+
+class ChessBoard final
 {
+    STATIC_CLASS(ChessBoard)
+
 public:
-    float boardSize;
-    Vector2 position;
-    Vector2 scaling;
+    static inline float boardSize;
+    static inline Vector2 position;
+    static inline Vector2 scaling = Vector2::One();
     static inline Mountain::List<Piece*> pieces;
     static inline std::array<std::array<Tile*, 8>, 8> tiles;
     static inline Mountain::List<Tile*> availableTiles;
-    Piece* draggedPiece;
-    Piece* selectedPiece;
+    static inline Piece* draggedPiece;
+    static inline Piece* selectedPiece;
     static inline Piece* enPassantPiece;
 
 public:
-    ChessBoard();
-    ~ChessBoard();
-    DEFAULT_COPY_MOVE_OPERATIONS(ChessBoard)
-
-    void Render();
-    void Initialize();
-    void InitTiles() const;
-    void InitPieces();
-    void Update();
-    void DragAndDrop();
-    void DeletePiece(Piece* piece);
+    static void CleanUp();
+    static void Render();
+    static void Initialize();
+    static void InitTiles();
+    static void InitPieces();
+    static void Update();
+    static void DragAndDrop();
+    static void DeletePiece(Piece* piece);
+    static void HandleEnPassant(Vector2i mousePosToTiles);
+    static void HandlePromotion();
+    static void HandleCastle(Vector2i newTile);
 
 public:
     static void LoadResources();

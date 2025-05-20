@@ -5,16 +5,9 @@
 #include "Mountain/rendering/draw.hpp"
 #include "Mountain/resource/resource_manager.hpp"
 
-ChessBoard::ChessBoard()
-{
-    boardSize = 0;
-    position = {0, 0};
-    scaling = {1, 1};
-    draggedPiece = nullptr;
-    selectedPiece = nullptr;
-}
+#include "Piece.h"
 
-ChessBoard::~ChessBoard()
+void ChessBoard::CleanUp()
 {
     pieces.Iterate([](Piece** piece){ delete *piece; });
 }
@@ -37,7 +30,7 @@ void ChessBoard::Initialize()
     InitPieces();
 }
 
-void ChessBoard::InitTiles() const
+void ChessBoard::InitTiles()
 {
     for (uint8_t i = 0; i < 8; i++)
     {
@@ -136,54 +129,28 @@ void ChessBoard::DragAndDrop()
                 Tile* droppedTile = tiles[mousePosToTiles.x][mousePosToTiles.y];
                 if (pieceAvailableTiles.Contains(droppedTile))
                 {
-                    if (draggedPiece->pieceType == PieceType::Pawn && enPassantPiece)
-                    {
-                        const Vector2i forward = draggedPiece->isWhite ? -Vector2i::UnitY() : Vector2i::UnitY();
-                        const Vector2i topLeftTilePos = draggedPiece->tilePosition + (forward - Vector2i::UnitX());
-                        const Vector2i topRightTilePos = draggedPiece->tilePosition + (forward + Vector2i::UnitX());
-                        if (mousePosToTiles == topLeftTilePos)
-                        {
-                            const Piece* topLeftPiece = GetPieceFromTileSafe(topLeftTilePos);
-                            if (!topLeftPiece)
-                            {
-                                DeletePiece(enPassantPiece);
-                            }
-
-                        }
-                        else if (mousePosToTiles == topRightTilePos)
-                        {
-                            const Piece* topRightPiece = GetPieceFromTileSafe(topRightTilePos);
-                            if (!topRightPiece)
-                            {
-                                DeletePiece(enPassantPiece);
-                            }
-                        }
-                    }
-                    enPassantPiece = nullptr;
-                    if (draggedPiece->pieceType == PieceType::Pawn)
-                    {
-                        const Vector2i forward = draggedPiece->isWhite ? -Vector2i::UnitY() : Vector2i::UnitY();
-                        if (draggedPiece->tilePosition + forward *  2 == mousePosToTiles)
-                            enPassantPiece = draggedPiece;
-                    }
+                    HandleEnPassant(mousePosToTiles);
+                    HandleCastle(mousePosToTiles);
                     Piece* p = GetPieceFromTile(mousePosToTiles);
                     if (p)
                     {
                         if (p->isWhite != draggedPiece->isWhite)
                         {
-                            draggedPiece->tile = droppedTile;
-                            draggedPiece->tilePosition = mousePosToTiles;
+                            draggedPiece->UpdatePosition(droppedTile);
                             DeletePiece(p);
-                            draggedPiece->isMoved = true;
                         }
                     }
                     else
                     {
-                        draggedPiece->tile = droppedTile;
-                        draggedPiece->tilePosition = mousePosToTiles;
-                        draggedPiece->isMoved = true;
+                        draggedPiece->UpdatePosition(droppedTile);
                     }
                     availableTiles.Clear();
+                    if (draggedPiece->pieceType == PieceType::Pawn)
+                    {
+                        const int lastRank = draggedPiece->isWhite ? 0 : 7;
+                        if (draggedPiece->tilePosition.y == lastRank)
+                            HandlePromotion();
+                    }
                 }
             }
             draggedPiece->globalPosition = draggedPiece->tile->position;
@@ -197,6 +164,68 @@ void ChessBoard::DeletePiece(Piece* piece)
 {
     pieces.Remove(piece);
     delete piece;
+}
+
+void ChessBoard::HandleEnPassant(const Vector2i mousePosToTiles)
+{
+    if (draggedPiece->pieceType == PieceType::Pawn && enPassantPiece)
+    {
+        const Vector2i forward = draggedPiece->isWhite ? -Vector2i::UnitY() : Vector2i::UnitY();
+        const Vector2i topLeftTilePos = draggedPiece->tilePosition + (forward - Vector2i::UnitX());
+        const Vector2i topRightTilePos = draggedPiece->tilePosition + (forward + Vector2i::UnitX());
+        if (mousePosToTiles == topLeftTilePos)
+        {
+            const Piece* topLeftPiece = GetPieceFromTileSafe(topLeftTilePos);
+            if (!topLeftPiece)
+            {
+                DeletePiece(enPassantPiece);
+            }
+
+        }
+        else if (mousePosToTiles == topRightTilePos)
+        {
+            const Piece* topRightPiece = GetPieceFromTileSafe(topRightTilePos);
+            if (!topRightPiece)
+            {
+                DeletePiece(enPassantPiece);
+            }
+        }
+    }
+    enPassantPiece = nullptr;
+    if (draggedPiece->pieceType == PieceType::Pawn)
+    {
+        const Vector2i forward = draggedPiece->isWhite ? -Vector2i::UnitY() : Vector2i::UnitY();
+        if (draggedPiece->tilePosition + forward *  2 == mousePosToTiles)
+            enPassantPiece = draggedPiece;
+    }
+}
+
+void ChessBoard::HandlePromotion()
+{
+    draggedPiece->pieceType = PieceType::Queen;
+}
+
+void ChessBoard::HandleCastle(const Vector2i newTile)
+{
+    if (draggedPiece->pieceType != PieceType::King)
+        return;
+
+    constexpr Vector2i right =  Vector2i::UnitX();
+    constexpr Vector2i left = -right;
+
+    if (draggedPiece->tilePosition + right * 2 == newTile)
+    {
+        Piece* rightRook = GetPieceFromTileSafe(draggedPiece->tilePosition + right * 3);
+        if (rightRook)
+            rightRook->UpdatePosition(GetTileSafe(rightRook->tilePosition + left * 2));
+    }
+
+    if (draggedPiece->tilePosition + left * 2 == newTile)
+    {
+        Piece* leftRook = GetPieceFromTileSafe(draggedPiece->tilePosition + left * 4);
+        if (leftRook)
+            leftRook->UpdatePosition(GetTileSafe(leftRook->tilePosition + right * 3));
+    }
 }
 
 Vector2 ChessBoard::ToPixels(const Vector2i tilePosition)

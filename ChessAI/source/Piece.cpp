@@ -1,6 +1,5 @@
 ﻿#include "Piece.h"
 
-#include "ChessBoard.h"
 #include "Mountain/window.hpp"
 #include "Mountain/input/input.hpp"
 #include "Mountain/rendering/draw.hpp"
@@ -11,10 +10,6 @@ Piece::Piece(const bool isWhite, const PieceType pieceType, Tile* tile)
 {
     scaling = Vector2(0.363f);
     tilePosition = tile->tilePosition;
-}
-
-Piece::~Piece()
-{
 }
 
 void Piece::Render()
@@ -98,18 +93,7 @@ void Piece::GetKnightAvailableTiles(Mountain::List<Tile*>& result) const
         ChessBoard::GetTileSafe(tilePosition + Vector2i(-2, -1))
     };
 
-    for (Tile* tile : tiles)
-    {
-        if (!tile)
-            continue;
-
-        const Piece* piece = ChessBoard::GetPieceFromTileSafe(tile->tilePosition);
-        if (piece)
-            if (piece->isWhite == isWhite)
-                continue;
-
-        result.Add(tile);
-    }
+    AddTilesIfNoFreroOnIt(tiles, result);
 }
 
 void Piece::GetBishopAvailableTiles(Mountain::List<Tile*>& result) const
@@ -191,7 +175,7 @@ void Piece::GetQueenAvailableTiles(Mountain::List<Tile*>& result) const
 
 void Piece::GetKingAvailableTiles(Mountain::List<Tile*>& result) const
 {
-    const std::array tiles = {
+     const std::array tiles = {
         ChessBoard::GetTileSafe(tilePosition + Vector2i(1, 1)),
         ChessBoard::GetTileSafe(tilePosition + Vector2i(1, 0)),
         ChessBoard::GetTileSafe(tilePosition + Vector2i(1, -1)),
@@ -202,18 +186,39 @@ void Piece::GetKingAvailableTiles(Mountain::List<Tile*>& result) const
         ChessBoard::GetTileSafe(tilePosition + Vector2i(0, 1))
     };
 
-    for (Tile* tile : tiles)
+    if (!isMoved)
     {
-        if (!tile)
-            continue;
+        constexpr Vector2i right =  Vector2i::UnitX();
+        constexpr Vector2i left = -right;
+        const Piece* rightCornerPiece = ChessBoard::GetPieceFromTileSafe(tilePosition + right * 3);
+        const Piece* leftCornerPiece = ChessBoard::GetPieceFromTileSafe(tilePosition + left * 4);
 
-        const Piece* piece = ChessBoard::GetPieceFromTileSafe(tile->tilePosition);
-        if (piece)
-            if (piece->isWhite == isWhite)
-                continue;
+        if (rightCornerPiece && !rightCornerPiece->isMoved && rightCornerPiece->pieceType == PieceType::Rook
+            && !ChessBoard::IsTherePieceOnTile(tilePosition + right))
+        {
+            const Vector2i twoRightTiles = tilePosition + right * 2;
+            if (!ChessBoard::IsTherePieceOnTile(twoRightTiles))
+                result.Add(ChessBoard::GetTileSafe(twoRightTiles));
+        }
 
-        result.Add(tile);
+        if (leftCornerPiece && !leftCornerPiece->isMoved && leftCornerPiece->pieceType == PieceType::Rook
+            && !ChessBoard::IsTherePieceOnTile(tilePosition + left) && !ChessBoard::IsTherePieceOnTile(tilePosition + left * 3))
+            {
+                const Vector2i twoLeftTiles = tilePosition + left * 2;
+                if (!ChessBoard::IsTherePieceOnTile(twoLeftTiles))
+                    result.Add(ChessBoard::GetTileSafe(twoLeftTiles));
+            }
     }
+
+    AddTilesIfNoFreroOnIt(tiles, result);
+}
+
+void Piece::UpdatePosition(Tile* newTile)
+{
+    tile = newTile;
+    tilePosition = newTile->tilePosition;
+    globalPosition = newTile->position;
+    isMoved = true;
 }
 
 void Piece::LoadResources()
