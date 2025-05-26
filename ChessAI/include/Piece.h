@@ -42,9 +42,9 @@ public:
     void GetQueenAvailableTiles(Mountain::List<Tile*>& result) const;
     void GetKingAvailableTiles(Mountain::List<Tile*>& result) const;
 
-    void UpdatePosition(Tile* newTile);
+    void Move(Tile* newTile);
     template <size_t Size>
-    void AddTilesIfNoFreroOnIt(std::array<Tile*, Size> tiles, Mountain::List<Tile*>& result) const;
+    void AddTilesIfNoAllyOnIt(const std::array<Tile*, Size>& tiles, Mountain::List<Tile*>& result) const;
 public:
     static void LoadResources();
 
@@ -55,7 +55,7 @@ private:
 #include "ChessBoard.h"
 
 template <size_t Size>
-void Piece::AddTilesIfNoFreroOnIt(std::array<Tile*, Size> tiles, Mountain::List<Tile*>& result) const
+void Piece::AddTilesIfNoAllyOnIt(const std::array<Tile*, Size>& tiles, Mountain::List<Tile*>& result) const
 {
     for (Tile* t : tiles)
     {
@@ -63,9 +63,8 @@ void Piece::AddTilesIfNoFreroOnIt(std::array<Tile*, Size> tiles, Mountain::List<
             continue;
 
         const Piece* piece = ChessBoard::GetPieceFromTileSafe(t->tilePosition);
-        if (piece)
-            if (piece->isWhite == isWhite)
-                continue;
+        if (piece && piece->isWhite == isWhite)
+            continue;
 
         result.Add(t);
     }

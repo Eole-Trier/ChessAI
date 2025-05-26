@@ -136,13 +136,13 @@ void ChessBoard::DragAndDrop()
                     {
                         if (p->isWhite != draggedPiece->isWhite)
                         {
-                            draggedPiece->UpdatePosition(droppedTile);
+                            draggedPiece->Move(droppedTile);
                             DeletePiece(p);
                         }
                     }
                     else
                     {
-                        draggedPiece->UpdatePosition(droppedTile);
+                        draggedPiece->Move(droppedTile);
                     }
                     availableTiles.Clear();
                     if (draggedPiece->pieceType == PieceType::Pawn)
@@ -217,15 +217,29 @@ void ChessBoard::HandleCastle(const Vector2i newTile)
     {
         Piece* rightRook = GetPieceFromTileSafe(draggedPiece->tilePosition + right * 3);
         if (rightRook)
-            rightRook->UpdatePosition(GetTileSafe(rightRook->tilePosition + left * 2));
+            rightRook->Move(GetTileSafe(rightRook->tilePosition + left * 2));
     }
 
     if (draggedPiece->tilePosition + left * 2 == newTile)
     {
         Piece* leftRook = GetPieceFromTileSafe(draggedPiece->tilePosition + left * 4);
         if (leftRook)
-            leftRook->UpdatePosition(GetTileSafe(leftRook->tilePosition + right * 3));
+            leftRook->Move(GetTileSafe(leftRook->tilePosition + right * 3));
     }
+}
+
+bool ChessBoard::IsTileControlled(const Vector2i newTile, bool isWhite)
+{
+    for (Piece* piece : pieces)
+    {
+        if (isWhite == piece->isWhite)
+            continue;
+        Mountain::List<Tile*> tiles;
+        piece->GetAvailableTiles(tiles);
+        if (tiles.Contains(GetTileSafe(newTile)))
+            return true;
+    }
+    return false;
 }
 
 Vector2 ChessBoard::ToPixels(const Vector2i tilePosition)

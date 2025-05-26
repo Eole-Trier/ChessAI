@@ -93,7 +93,7 @@ void Piece::GetKnightAvailableTiles(Mountain::List<Tile*>& result) const
         ChessBoard::GetTileSafe(tilePosition + Vector2i(-2, -1))
     };
 
-    AddTilesIfNoFreroOnIt(tiles, result);
+    AddTilesIfNoAllyOnIt(tiles, result);
 }
 
 void Piece::GetBishopAvailableTiles(Mountain::List<Tile*>& result) const
@@ -210,10 +210,18 @@ void Piece::GetKingAvailableTiles(Mountain::List<Tile*>& result) const
             }
     }
 
-    AddTilesIfNoFreroOnIt(tiles, result);
+    Mountain::List<Tile*> tilesNoAlly;
+    AddTilesIfNoAllyOnIt(tiles, tilesNoAlly);
+
+    for (Tile* tile : tilesNoAlly)
+    {
+        if (ChessBoard::IsTileControlled(tile->tilePosition, isWhite))
+            result.Add(tile);
+
+    }
 }
 
-void Piece::UpdatePosition(Tile* newTile)
+void Piece::Move(Tile* newTile)
 {
     tile = newTile;
     tilePosition = newTile->tilePosition;
