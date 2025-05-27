@@ -210,14 +210,15 @@ void Piece::GetKingAvailableTiles(Mountain::List<Tile*>& result) const
             }
     }
 
-    Mountain::List<Tile*> tilesNoAlly;
-    AddTilesIfNoAllyOnIt(tiles, tilesNoAlly);
+    AddTilesIfNoAllyOnIt(tiles, result);
+}
 
-    for (Tile* tile : tilesNoAlly)
+void Piece::RemoveTilesControlledByOpponent(Mountain::List<Tile*>& result) const
+{
+    for (int i = static_cast<int>(result.GetSize() - 1); i >= 0; i--)
     {
-        if (ChessBoard::IsTileControlled(tile->tilePosition, isWhite))
-            result.Add(tile);
-
+        if (ChessBoard::IsTileControlled(result[i]->tilePosition, this))
+            result.RemoveAt(i);
     }
 }
 

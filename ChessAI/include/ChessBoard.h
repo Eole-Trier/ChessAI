@@ -33,7 +33,7 @@ public:
     static void HandleEnPassant(Vector2i mousePosToTiles);
     static void HandlePromotion();
     static void HandleCastle(Vector2i newTile);
-    static bool IsTileControlled(Vector2i newTile, bool isWhite);
+    static bool IsTileControlled(Vector2i newTile, const Piece* piece);
 
 public:
     static void LoadResources();

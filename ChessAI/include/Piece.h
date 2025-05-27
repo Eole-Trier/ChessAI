@@ -41,10 +41,12 @@ public:
     void GetRookAvailableTiles(Mountain::List<Tile*>& result) const;
     void GetQueenAvailableTiles(Mountain::List<Tile*>& result) const;
     void GetKingAvailableTiles(Mountain::List<Tile*>& result) const;
+    void RemoveTilesControlledByOpponent(Mountain::List<Tile*>& result) const;
 
     void Move(Tile* newTile);
     template <size_t Size>
     void AddTilesIfNoAllyOnIt(const std::array<Tile*, Size>& tiles, Mountain::List<Tile*>& result) const;
+
 public:
     static void LoadResources();
 

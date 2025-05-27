@@ -108,7 +108,12 @@ void ChessBoard::DragAndDrop()
         selectedPiece = draggedPiece;
         availableTiles.Clear();
         if (selectedPiece)
+        {
             selectedPiece->GetAvailableTiles(availableTiles);
+            if (selectedPiece->pieceType == PieceType::King)
+                selectedPiece->RemoveTilesControlledByOpponent(availableTiles);
+
+        }
     }
 
     if (Mountain::Input::GetMouseButton(Mountain::MouseButton::Left, Mountain::MouseButtonStatus::Down))
@@ -126,6 +131,9 @@ void ChessBoard::DragAndDrop()
             {
                 Mountain::List<Tile*> pieceAvailableTiles;
                 draggedPiece->GetAvailableTiles(pieceAvailableTiles);
+                if (selectedPiece->pieceType == PieceType::King)
+                    selectedPiece->RemoveTilesControlledByOpponent(pieceAvailableTiles);
+
                 Tile* droppedTile = tiles[mousePosToTiles.x][mousePosToTiles.y];
                 if (pieceAvailableTiles.Contains(droppedTile))
                 {
@@ -228,15 +236,15 @@ void ChessBoard::HandleCastle(const Vector2i newTile)
     }
 }
 
-bool ChessBoard::IsTileControlled(const Vector2i newTile, bool isWhite)
+bool ChessBoard::IsTileControlled(const Vector2i newTile, const Piece* piece)
 {
-    for (Piece* piece : pieces)
+    for (const Piece* p : pieces)
     {
-        if (isWhite == piece->isWhite)
+        if (piece->isWhite == p->isWhite || piece == p)
             continue;
-        Mountain::List<Tile*> tiles;
-        piece->GetAvailableTiles(tiles);
-        if (tiles.Contains(GetTileSafe(newTile)))
+        Mountain::List<Tile*> pieceTiles;
+        p->GetAvailableTiles(pieceTiles);
+        if (pieceTiles.Contains(GetTileSafe(newTile)))
             return true;
     }
     return false;
