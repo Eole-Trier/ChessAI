@@ -27,7 +27,7 @@ public:
 
     Tile* tile;
 
-    bool isMoved = false;
+    bool hasMoved = false;
     bool isDragged = false;
 
 public:
@@ -41,7 +41,7 @@ public:
     void GetRookAvailableTiles(Mountain::List<Tile*>& result) const;
     void GetQueenAvailableTiles(Mountain::List<Tile*>& result) const;
     void GetKingAvailableTiles(Mountain::List<Tile*>& result) const;
-    void RemoveTilesControlledByOpponent(Mountain::List<Tile*>& result) const;
+    void RemoveTilesProtectedByOpponent(Mountain::List<Tile*>& result) const;
 
     void Move(Tile* newTile);
     template <size_t Size>

@@ -111,7 +111,7 @@ void ChessBoard::DragAndDrop()
         {
             selectedPiece->GetAvailableTiles(availableTiles);
             if (selectedPiece->pieceType == PieceType::King)
-                selectedPiece->RemoveTilesControlledByOpponent(availableTiles);
+                selectedPiece->RemoveTilesProtectedByOpponent(availableTiles);
 
         }
     }
@@ -132,33 +132,30 @@ void ChessBoard::DragAndDrop()
                 Mountain::List<Tile*> pieceAvailableTiles;
                 draggedPiece->GetAvailableTiles(pieceAvailableTiles);
                 if (selectedPiece->pieceType == PieceType::King)
-                    selectedPiece->RemoveTilesControlledByOpponent(pieceAvailableTiles);
+                    selectedPiece->RemoveTilesProtectedByOpponent(pieceAvailableTiles);
 
                 Tile* droppedTile = tiles[mousePosToTiles.x][mousePosToTiles.y];
                 if (pieceAvailableTiles.Contains(droppedTile))
                 {
                     HandleEnPassant(mousePosToTiles);
                     HandleCastle(mousePosToTiles);
-                    Piece* p = GetPieceFromTile(mousePosToTiles);
-                    if (p)
+
+                    if (!IsPinned(draggedPiece, droppedTile))
                     {
-                        if (p->isWhite != draggedPiece->isWhite)
+                        Piece* p = GetPieceFromTile(mousePosToTiles);
+                        if (p)
                         {
                             draggedPiece->Move(droppedTile);
                             DeletePiece(p);
                         }
+                        else
+                        {
+                            draggedPiece->Move(droppedTile);
+                        }
                     }
-                    else
-                    {
-                        draggedPiece->Move(droppedTile);
-                    }
+
+                    HandlePromotion();
                     availableTiles.Clear();
-                    if (draggedPiece->pieceType == PieceType::Pawn)
-                    {
-                        const int lastRank = draggedPiece->isWhite ? 0 : 7;
-                        if (draggedPiece->tilePosition.y == lastRank)
-                            HandlePromotion();
-                    }
                 }
             }
             draggedPiece->globalPosition = draggedPiece->tile->position;
@@ -210,7 +207,12 @@ void ChessBoard::HandleEnPassant(const Vector2i mousePosToTiles)
 
 void ChessBoard::HandlePromotion()
 {
-    draggedPiece->pieceType = PieceType::Queen;
+    if (draggedPiece->pieceType == PieceType::Pawn)
+    {
+        const int lastRank = draggedPiece->isWhite ? 0 : 7;
+        if (draggedPiece->tilePosition.y == lastRank)
+            draggedPiece->pieceType = PieceType::Queen;
+    }
 }
 
 void ChessBoard::HandleCastle(const Vector2i newTile)
@@ -236,7 +238,7 @@ void ChessBoard::HandleCastle(const Vector2i newTile)
     }
 }
 
-bool ChessBoard::IsTileControlled(const Vector2i newTile, const Piece* piece)
+bool ChessBoard::IsTileProtected(const Vector2i newTile, const Piece* piece)
 {
     for (const Piece* p : pieces)
     {
@@ -248,6 +250,42 @@ bool ChessBoard::IsTileControlled(const Vector2i newTile, const Piece* piece)
             return true;
     }
     return false;
+}
+
+bool ChessBoard::IsPinned(Piece* piece, Tile* newTile)
+{
+    Tile* oldTile = piece->tile;
+    const bool hasMoved = piece->hasMoved;
+
+    piece->Move(newTile);
+
+    const Piece* king = GetKing(piece->isWhite);
+    if (!king)
+        throw std::runtime_error("Should always get a king");
+
+    if (IsTileProtected(king->tilePosition, king))
+    {
+        piece->Move(oldTile);
+        if (!hasMoved)
+            piece->hasMoved = false;
+        return true;
+    }
+
+    piece->Move(oldTile);
+    if (!hasMoved)
+        piece->hasMoved = false;
+
+    return false;
+}
+
+Piece* ChessBoard::GetKing(const bool isWhite)
+{
+    for (Piece* p : pieces)
+    {
+        if (p->isWhite == isWhite && p->pieceType == PieceType::King)
+            return p;
+    }
+    return nullptr;
 }
 
 Vector2 ChessBoard::ToPixels(const Vector2i tilePosition)

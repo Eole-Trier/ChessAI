@@ -54,7 +54,7 @@ void Piece::GetPawnAvailableTiles(Mountain::List<Tile*>& result) const
         result.Add(ChessBoard::GetTileSafe(forwardTilePosition));
 
         const Vector2i twoTilesForwardTilePosition = forwardTilePosition + forward;
-        if (!isMoved && !ChessBoard::IsTherePieceOnTile(twoTilesForwardTilePosition))
+        if (!hasMoved && !ChessBoard::IsTherePieceOnTile(twoTilesForwardTilePosition))
             result.Add(ChessBoard::GetTileSafe(twoTilesForwardTilePosition));
     }
 
@@ -186,14 +186,14 @@ void Piece::GetKingAvailableTiles(Mountain::List<Tile*>& result) const
         ChessBoard::GetTileSafe(tilePosition + Vector2i(0, 1))
     };
 
-    if (!isMoved)
+    if (!hasMoved)
     {
         constexpr Vector2i right =  Vector2i::UnitX();
         constexpr Vector2i left = -right;
         const Piece* rightCornerPiece = ChessBoard::GetPieceFromTileSafe(tilePosition + right * 3);
         const Piece* leftCornerPiece = ChessBoard::GetPieceFromTileSafe(tilePosition + left * 4);
 
-        if (rightCornerPiece && !rightCornerPiece->isMoved && rightCornerPiece->pieceType == PieceType::Rook
+        if (rightCornerPiece && !rightCornerPiece->hasMoved && rightCornerPiece->pieceType == PieceType::Rook
             && !ChessBoard::IsTherePieceOnTile(tilePosition + right))
         {
             const Vector2i twoRightTiles = tilePosition + right * 2;
@@ -201,7 +201,7 @@ void Piece::GetKingAvailableTiles(Mountain::List<Tile*>& result) const
                 result.Add(ChessBoard::GetTileSafe(twoRightTiles));
         }
 
-        if (leftCornerPiece && !leftCornerPiece->isMoved && leftCornerPiece->pieceType == PieceType::Rook
+        if (leftCornerPiece && !leftCornerPiece->hasMoved && leftCornerPiece->pieceType == PieceType::Rook
             && !ChessBoard::IsTherePieceOnTile(tilePosition + left) && !ChessBoard::IsTherePieceOnTile(tilePosition + left * 3))
             {
                 const Vector2i twoLeftTiles = tilePosition + left * 2;
@@ -213,11 +213,11 @@ void Piece::GetKingAvailableTiles(Mountain::List<Tile*>& result) const
     AddTilesIfNoAllyOnIt(tiles, result);
 }
 
-void Piece::RemoveTilesControlledByOpponent(Mountain::List<Tile*>& result) const
+void Piece::RemoveTilesProtectedByOpponent(Mountain::List<Tile*>& result) const
 {
     for (int i = static_cast<int>(result.GetSize() - 1); i >= 0; i--)
     {
-        if (ChessBoard::IsTileControlled(result[i]->tilePosition, this))
+        if (ChessBoard::IsTileProtected(result[i]->tilePosition, this))
             result.RemoveAt(i);
     }
 }
@@ -227,7 +227,7 @@ void Piece::Move(Tile* newTile)
     tile = newTile;
     tilePosition = newTile->tilePosition;
     globalPosition = newTile->position;
-    isMoved = true;
+    hasMoved = true;
 }
 
 void Piece::LoadResources()
